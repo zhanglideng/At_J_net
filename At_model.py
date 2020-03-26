@@ -210,10 +210,9 @@ class Dense_decoder(nn.Module):
         return dehaze
 
 
-class At(nn.Module):
+class Encoder(nn.Module):
     def __init__(self):
-        super(At, self).__init__()
-
+        super(Encoder, self).__init__()
         ############# 256-256  ##############
         haze_class = models.densenet201(pretrained=True)
 
@@ -238,22 +237,6 @@ class At(nn.Module):
         self.dense_block4 = BottleneckBlock(896, 448)  # 896, 256
         self.trans_block4 = TransitionBlock(896 + 448, 256)  # 1152, 128
 
-        self.decoder_A = Dense_decoder(out_channel=3)
-        self.decoder_t = Dense_decoder(out_channel=1)
-        self.decoder_J = Dense_decoder(out_channel=3)
-
-        self.refine1 = nn.Conv2d(3, 20, kernel_size=3, stride=1, padding=1)
-        self.refine2 = nn.Conv2d(20, 20, kernel_size=3, stride=1, padding=1)
-        self.refine3 = nn.Conv2d(24, 3, kernel_size=3, stride=1, padding=1)
-
-        self.threshold = nn.Threshold(0.1, 0.1)
-        self.conv1010 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
-        self.conv1020 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
-        self.conv1030 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
-        self.conv1040 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
-        self.upsample = F.upsample
-        self.relu = nn.ReLU(inplace=True)
-
     def forward(self, x, activation='sig'):
         ## 256x256
         x0 = self.pool0(self.relu0(self.norm0(self.conv0(x))))
@@ -272,18 +255,45 @@ class At(nn.Module):
 
         ## 8 X 8
         x4 = self.trans_block4(self.dense_block4(x3))
+        return x1, x2, x4
 
-        ######################################
 
+class At(nn.Module):
+    def __init__(self):
+        super(At, self).__init__()
+        self.encoder_1 = Encoder()
+        self.encoder_2 = Encoder()
+        self.decoder_A = Dense_decoder(out_channel=3)
+        self.decoder_t = Dense_decoder(out_channel=1)
+        self.decoder_J = Dense_decoder(out_channel=3)
+
+        self.refine1 = nn.Conv2d(3, 20, kernel_size=3, stride=1, padding=1)
+        self.refine2 = nn.Conv2d(20, 20, kernel_size=3, stride=1, padding=1)
+        self.refine3 = nn.Conv2d(24, 3, kernel_size=3, stride=1, padding=1)
+
+        self.threshold = nn.Threshold(0.1, 0.1)
+        self.conv1010 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
+        self.conv1020 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
+        self.conv1030 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
+        self.conv1040 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
+        self.upsample = F.upsample
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x, activation='sig'):
+        x1, x2, x4 = self.encoder1(x)
         A = self.decoder_A(x, x1, x2, x4)
         t = self.decoder_t(x, x1, x2, x4, activation='sig')
+
+        x1, x2, x4 = self.encoder_2(x)
+        J = self.decoder_J(x, x1, x2, x4)
 
         t1 = torch.abs((t)) + (10 ** -10)
         t1 = t1.repeat(1, 3, 1, 1)
 
-        J = (x - A * (1 - t1)) / t1
+        haze_reconstruct = J * t + A * (1 - t)
+        J_reconstruct = (x - A * (1 - t1)) / t1
 
-        return J, A, t
+        return J, A, t, J_reconstruct, haze_reconstruct
 
 
 '''
