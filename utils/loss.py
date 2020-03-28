@@ -24,20 +24,6 @@ def vgg_loss(output, gth):
     return l2_loss(output_features, gth_features)
 
 
-'''
-def color_loss(image, label, len_reg=0):
-    vec1 = tf.reshape(image, [-1, 3]) 想要得到一个第二维度是3的向量，不管第一维度是几。
-    vec2 = tf.reshape(label, [-1, 3])
-    clip_value = 0.999999
-    norm_vec1 = tf.nn.l2_normalize(vec1, 1) l2范化
-    norm_vec2 = tf.nn.l2_normalize(vec2, 1)
-    dot = tf.reduce_sum(norm_vec1*norm_vec2, 1) 维度求和
-    dot = tf.clip_by_value(dot, -clip_value, clip_value) 限制在一个范围内
-    angle = tf.acos(dot) * (180/math.pi) 根据值反求角度
-    return tf.reduce_mean(angle) 计算角度的均值
-'''
-
-
 def color_loss(input_image, output_image):
     vec1 = input_image.view([-1, 3])
     vec2 = output_image.view([-1, 3])
@@ -52,12 +38,10 @@ def color_loss(input_image, output_image):
 
 
 def loss_function(image, weight):
-    gt_image, A_image, t_image, J, A, t = image
-    loss_train = [l2_loss(gt_image, J),
-                  ssim_loss(gt_image, J),
-                  l2_loss(A_image, A),
-                  l2_loss(t_image, t),
-                  ssim_loss(t_image, t, channel=1)]
+    J, gt_image = image
+    loss_train = [l2_loss(J, gt_image),
+                  ssim_loss(J, gt_image),
+                  vgg_loss(J, gt_image)]
     loss_sum = 0
     for i in range(len(loss_train)):
         loss_sum = loss_sum + loss_train[i] * weight[i]

@@ -44,6 +44,9 @@ f, sheet_train, sheet_val = init_excel()
 net = AtJ().cuda()
 print(net)
 
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
