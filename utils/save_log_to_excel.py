@@ -12,32 +12,22 @@ def set_style(name, height, bold=False):
     return style
 
 
-def write_excel(sheet, data_type, line, epoch, itr, loss):
-    # 在train页中保留train的数据，在validation页中保留validation的数据
-    # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间]
-    """
-    :param sheet:
-    :param data_type:
-    :param line:
-    :param epoch:
-    :param itr:
-    :param loss:
-    :param itr_to_excel:
-    :return:
-    train=["EPOCH", "ITR", "L2_LOSS", "SSIM_LOSS", "LOSS", "LR"]
-    val=["EPOCH", "L2_LOSS", "SSIM_LOSS", "LOSS", "PSNR", "SSIM", "LR"]
-    """
+def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
+    sum_loss = 0
     if data_type == 'train':
         sheet.write(line, 0, epoch + 1)
         sheet.write(line, 1, itr + 1)
-        for i in range(5):
+        for i in range(3):
             sheet.write(line, i + 2, round(loss[i], 4))
-        sheet.write(line, 7, round(sum(loss), 4))
+            sum_loss += loss[i] * weight[i]
+        sheet.write(line, 5, round(sum_loss, 4))
     else:
+        loss, val, train = loss
         sheet.write(line, 0, epoch + 1)
-        for i in range(5):
+        for i in range(3):
             sheet.write(line, i + 1, round(loss[i], 4))
-        sheet.write(line, 6, round(sum(loss), 4))
+        sheet.write(line, 4, round(val, 4))
+        sheet.write(line, 5, round(train, 4))
     return line + 1
 
 
@@ -46,8 +36,8 @@ def init_excel():
     sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
     sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
     # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-    row0 = ["EPOCH", "ITR", "J_L2", "J_SSIM", "A_L2", "t_L2", "t_SSIM", "LOSS"]
-    row1 = ["EPOCH", "J_L2", "J_SSIM", "A_L2", "t_L2", "t_SSIM", "LOSS"]
+    row0 = ["epoch", "itr", "l2", "ssim", "vgg", "loss"]
+    row1 = ["epoch", "l2", "ssim", "vgg", "val_loss", "train_loss"]
     for i in range(0, len(row0)):
         print('写入train_excel')
         sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))

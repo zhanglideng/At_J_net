@@ -258,7 +258,7 @@ class Encoder(nn.Module):
         return x1, x2, x4
 
 
-class At(nn.Module):
+class AtJ(nn.Module):
     def __init__(self):
         super(At, self).__init__()
         self.encoder_1 = Encoder()

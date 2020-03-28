@@ -2,17 +2,26 @@ import torch
 from utils.ms_ssim import *
 import math
 import torch.nn.functional
+from vgg import Vgg16
 
 
-def l2_loss(input_image, output_image):
+def l2_loss(output, gth):
     l2_loss_fn = torch.nn.MSELoss(reduction='mean').cuda()
-    return l2_loss_fn(input_image, output_image) * 100
+    return l2_loss_fn(output, gth) * 100
 
 
-def ssim_loss(input_image, output_image, channel=3):
+def ssim_loss(output, gth, channel=3):
     losser = MS_SSIM(max_val=1, channel=channel).cuda()
     # losser = MS_SSIM(data_range=1.).cuda()
-    return (1 - losser(input_image, output_image)) * 100
+    return (1 - losser(output, gth)) * 100
+
+
+def vgg_loss(output, gth):
+    vgg = Vgg16().type(torch.cuda.FloatTensor)
+    # vgg = Vgg16().cuda()
+    output_features = vgg(output)
+    gth_features = vgg(gth)
+    return l2_loss(output_features, gth_features)
 
 
 '''

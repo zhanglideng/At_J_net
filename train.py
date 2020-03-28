@@ -18,7 +18,7 @@ from utils.ms_ssim import *
 import os
 
 LR = 0.0004  # 学习率
-EPOCH = 100  # 轮次
+EPOCH = 80  # 轮次
 BATCH_SIZE = 4  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
@@ -26,47 +26,39 @@ alpha = 1  # 损失函数的权重
 accumulation_steps = 1  # 梯度积累的次数，类似于batch-size=64
 itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 64 // BATCH_SIZE  # 训练64次后保存相关数据到excel
-loss_num = 5  # 包括参加训练和不参加训练的loss
-weight = [1, 1, 1, 1, 1]
-train_haze_path = '/home/aistudio/work/nyu/train/'  # 去雾训练集的路径
-val_haze_path = '/home/aistudio/work/nyu/val/'  # 去雾验证集的路径
-gt_path = '/home/aistudio/work/nyu/gth/'
-d_path = '/home/aistudio/work/nyu/depth/'
-save_path = './checkpoints/best_cnn_model.pt'  # 保存模型的路径
-excel_save = './result.xls'  # 保存excel的路径
+loss_num = 3  # 包括参加训练和不参加训练的loss
+weight = [1, 1, 1]
 
-'''
-def adjust_learning_rate(op, i):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = LR * (0.90 ** (i // itr_to_lr))
-    for param_group in op.param_groups:
-        param_group['lr'] = lr
-'''
+train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_train/'  # 去雾训练集的路径
+val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_val/'  # 去雾验证集的路径
+gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
+
+save_path = './result_nyu_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
+save_model_name = save_path + 'J_model.pt'  # 保存模型的路径
+excel_save = save_path + 'result.xls'  # 保存excel的路径
+mid_save_ed_path = './J_model/J_model.pt'  # 保存的中间模型，用于下一步训练。
 
 # 初始化excel
 f, sheet_train, sheet_val = init_excel()
-# 加载模型
-if os.path.exists(save_path):
-    net = torch.load(save_path)
-else:
-    net = At()
-net = net.cuda()
+
+net = AtJ().cuda()
 print(net)
 
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
-train_path_list = [train_haze_path, gt_path, d_path]
+train_path_list = [train_haze_path, gt_path]
 train_data = AtDataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
-val_path_list = [val_haze_path, gt_path, d_path]
+val_path_list = [val_haze_path, gt_path]
 val_data = AtDataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=35, gamma=0.7)
 
 min_loss = 999999999
 min_epoch = 0
@@ -77,19 +69,20 @@ start_time = time.time()
 print("\nstart to train!")
 for epoch in range(EPOCH):
     index = 0
-    train_epo_loss = 0
+    train_loss = 0
     loss = 0
     loss_excel = [0] * loss_num
-    for haze_image, gt_image, A_image, t_image in train_data_loader:
+    net.train()
+    for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
-        J, A, t = net(haze_image)
-        loss_image = [gt_image, A_image, t_image, J, A, t]
+        J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+        loss_image = [J, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
+        train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
         loss = loss / accumulation_steps
         loss.backward()
-        iter_loss = loss.item()
         # 3. update parameters of net
         if ((index + 1) % accumulation_steps) == 0:
             # optimizer the net
@@ -98,42 +91,43 @@ for epoch in range(EPOCH):
         if np.mod(index, itr_to_excel) == 0:
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
-            print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'A_L2=%.5f\n' 't_L2=%.5f\n' 't_SSIM=%.5f' %
-                  (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4]))
+            print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             excel_train_line = write_excel(sheet=sheet_train,
                                            data_type='train',
                                            line=excel_train_line,
                                            epoch=epoch,
                                            itr=itr,
-                                           loss=loss_excel)
+                                           loss=loss_excel,
+                                           weight=weight)
             f.save(excel_save)
             loss_excel = [0] * loss_num
     optimizer.step()
     optimizer.zero_grad()
+    scheduler.step()
     loss_excel = [0] * loss_num
     with torch.no_grad():
-        for haze_image, gt_image, A_image, t_image in val_data_loader:
-            J, A, t = net(haze_image)
-            loss_image = [gt_image, A_image, t_image, J, A, t]
+        net.eval()
+        for haze_image, gt_image in val_data_loader:
+            J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+            loss_image = [J, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
-    train_epo_loss = train_epo_loss / len(train_data_loader)
-    val_epoch_loss = sum(loss_excel)
+    train_loss = train_loss / len(train_data_loader)
+    val_loss = sum(loss_excel)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
-    print('\nepoch %d train loss = %.5f' % (epoch + 1, train_epo_loss))
-    print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'A_L2=%.5f\n' 't_L2=%.5f\n' 't_SSIM=%.5f'
-          % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4]))
+    print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
     excel_val_line = write_excel(sheet=sheet_val,
                                  data_type='val',
                                  line=excel_val_line,
                                  epoch=epoch,
                                  itr=False,
-                                 loss=loss_excel)
+                                 loss=[loss_excel, val_loss, train_loss],
+                                 weight=False)
     f.save(excel_save)
-    if val_epoch_loss < min_loss:
-        min_loss = val_epoch_loss
+    if val_loss < min_loss:
+        min_loss = val_loss
         min_epoch = epoch
-        torch.save(net, save_path)
+        torch.save(net, save_model_name)
         print('saving the epoch %d model with %.5f' % (epoch + 1, min_loss))
 print('Train is Done!')
