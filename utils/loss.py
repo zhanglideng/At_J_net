@@ -2,7 +2,7 @@ import torch
 from utils.ms_ssim import *
 import math
 import torch.nn.functional
-from vgg import Vgg16
+from utils.vgg import Vgg16
 
 
 def l2_loss(output, gth):

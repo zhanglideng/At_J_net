@@ -260,7 +260,7 @@ class Encoder(nn.Module):
 
 class AtJ(nn.Module):
     def __init__(self):
-        super(At, self).__init__()
+        super(AtJ, self).__init__()
         self.encoder_1 = Encoder()
         self.encoder_2 = Encoder()
         self.decoder_A = Dense_decoder(out_channel=3)
