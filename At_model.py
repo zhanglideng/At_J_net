@@ -214,7 +214,7 @@ class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
         ############# 256-256  ##############
-        haze_class = models.densenet201(pretrained=False)
+        haze_class = models.densenet201(pretrained=True)
 
         # print(haze_class)
         self.conv0 = haze_class.features.conv0
