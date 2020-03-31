@@ -212,10 +212,11 @@ class Dense_decoder(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self):
-        super(Encoder, self).__init__(pre_densenet201)
+        super(Encoder, self).__init__()
         ############# 256-256  ##############
-        haze_class = torch.load(pre_densenet201)
+        haze_class = models.densenet201(pretrained=False)
 
+        # print(haze_class)
         self.conv0 = haze_class.features.conv0
         self.norm0 = haze_class.features.norm0
         self.relu0 = haze_class.features.relu0
@@ -260,9 +261,9 @@ class Encoder(nn.Module):
 
 class AtJ(nn.Module):
     def __init__(self):
-        super(AtJ, self).__init__(pre_densenet201)
-        self.encoder_1 = Encoder(pre_densenet201)
-        self.encoder_2 = Encoder(pre_densenet201)
+        super(AtJ, self).__init__()
+        self.encoder_1 = Encoder()
+        self.encoder_2 = Encoder()
         self.decoder_A = Dense_decoder(out_channel=3)
         self.decoder_t = Dense_decoder(out_channel=1)
         self.decoder_J = Dense_decoder(out_channel=3)

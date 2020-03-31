@@ -5,9 +5,9 @@ from torchvision import models
 
 class Vgg16(nn.Module):
     def __init__(self):
-        super(Vgg16, self).__init__(pre_vgg16)
-        features = torch.load(pre_densenet201).features
-        # features = models.vgg16(pretrained=True).features
+        super(Vgg16, self).__init__()
+        # features = torch.load(pre_densenet201).features
+        features = models.vgg16(pretrained=True).features
         self.to_relu_1_2 = nn.Sequential()
         self.to_relu_2_2 = nn.Sequential()
         self.to_relu_3_3 = nn.Sequential()
