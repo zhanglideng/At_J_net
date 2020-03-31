@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
-sys.path.append('/home/aistudio/external-libraries')
+sys.path.append('/home/aistudio/work/external-libraries')
 
 import torch
 from torchvision import transforms
@@ -17,9 +17,9 @@ import xlwt
 from utils.ms_ssim import *
 import os
 
-LR = 0.0004  # 学习率
+LR = 0.0001  # 学习率
 EPOCH = 80  # 轮次
-BATCH_SIZE = 4  # 批大小
+BATCH_SIZE = 2  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
@@ -29,6 +29,8 @@ itr_to_excel = 64 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 3  # 包括参加训练和不参加训练的loss
 weight = [1, 1, 1]
 
+pre_densenet201 = '/home/aistudio/work/pre_model/densenet201.pth'
+pre_vgg16 = '/home/aistudio/work/pre_model/vgg16.pth'
 train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_train/'  # 去雾训练集的路径
 val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_val/'  # 去雾验证集的路径
 gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
@@ -41,8 +43,8 @@ mid_save_ed_path = './J_model/J_model.pt'  # 保存的中间模型，用于下�
 # 初始化excel
 f, sheet_train, sheet_val = init_excel()
 
-net = AtJ().cuda()
-print(net)
+net = AtJ(pre_densenet201).cuda()
+# print(net)
 
 if not os.path.exists(save_path):
     os.makedirs(save_path)
@@ -81,7 +83,7 @@ for epoch in range(EPOCH):
         itr += 1
         J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
         loss_image = [J, gt_image]
-        loss, temp_loss = loss_function(loss_image, weight)
+        loss, temp_loss = loss_function(loss_image, weight, pre_vgg16)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
         loss = loss / accumulation_steps
@@ -114,7 +116,7 @@ for epoch in range(EPOCH):
         for haze_image, gt_image in val_data_loader:
             J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
             loss_image = [J, gt_image]
-            loss, temp_loss = loss_function(loss_image, weight)
+            loss, temp_loss = loss_function(loss_image, weight, pre_vgg16)
             loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     val_loss = sum(loss_excel)

@@ -16,8 +16,8 @@ def ssim_loss(output, gth, channel=3):
     return (1 - losser(output, gth)) * 100
 
 
-def vgg_loss(output, gth):
-    vgg = Vgg16().type(torch.cuda.FloatTensor)
+def vgg_loss(output, gth, pre_vgg16):
+    vgg = Vgg16(pre_vgg16).type(torch.cuda.FloatTensor)
     # vgg = Vgg16().cuda()
     output_features = vgg(output)
     gth_features = vgg(gth)
@@ -37,11 +37,11 @@ def color_loss(input_image, output_image):
     return angle.mean()
 
 
-def loss_function(image, weight):
+def loss_function(image, weight, pre_vgg16):
     J, gt_image = image
     loss_train = [l2_loss(J, gt_image),
                   ssim_loss(J, gt_image),
-                  vgg_loss(J, gt_image)]
+                  vgg_loss(J, gt_image, pre_vgg16)]
     loss_sum = 0
     for i in range(len(loss_train)):
         loss_sum = loss_sum + loss_train[i] * weight[i]

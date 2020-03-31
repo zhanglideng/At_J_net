@@ -2,12 +2,14 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+
 class Vgg16(nn.Module):
     def __init__(self):
-        super(Vgg16, self).__init__()
-        features = models.vgg16(pretrained=True).features
-        self.to_relu_1_2 = nn.Sequential() 
-        self.to_relu_2_2 = nn.Sequential() 
+        super(Vgg16, self).__init__(pre_vgg16)
+        features = torch.load(pre_densenet201).features
+        # features = models.vgg16(pretrained=True).features
+        self.to_relu_1_2 = nn.Sequential()
+        self.to_relu_2_2 = nn.Sequential()
         self.to_relu_3_3 = nn.Sequential()
         self.to_relu_4_3 = nn.Sequential()
 
@@ -19,7 +21,7 @@ class Vgg16(nn.Module):
             self.to_relu_3_3.add_module(str(x), features[x])
         for x in range(16, 23):
             self.to_relu_4_3.add_module(str(x), features[x])
-        
+
         # don't need the gradients, just want the features
         for param in self.parameters():
             param.requires_grad = False
