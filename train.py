@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+# git clone https://github.com/zhanglideng/At_J_net.git
 import sys
 
 sys.path.append('/home/aistudio/external-libraries')
 import os
-# if not os.path.exists('/home/aistudio/data/data27583/vgg16-397923af.pth'):
-#    os.system('mv /home/aistudio/data/data27583/vgg16-397923af.pth  /home/aistudio/./models/')
-#    os.system('mv /home/aistudio/data/data27583/densenet201-c1103571.pth  /home/aistudio/./models/')
+if not os.path.exists('/home/aistudio/.torch/models/vgg16-397923af.pth'):
+    os.system('mkdir /home/aistudio/.torch')
+    os.system('mkdir /home/aistudio/.torch/models')
+    os.system('cp /home/aistudio/work/pre_model/*  /home/aistudio/.torch/models/')
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
