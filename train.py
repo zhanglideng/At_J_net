@@ -23,20 +23,20 @@ from utils.ms_ssim import *
 
 LR = 0.0001  # 学习率
 EPOCH = 80  # 轮次
-BATCH_SIZE = 2  # 批大小
+BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
 accumulation_steps = 1  # 梯度积累的次数，类似于batch-size=64
-itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
-itr_to_excel = 64 // BATCH_SIZE  # 训练64次后保存相关数据到excel
+# itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
+itr_to_excel = 4 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 3  # 包括参加训练和不参加训练的loss
 weight = [1, 1, 1]
 
 # pre_densenet201 = '/home/aistudio/work/pre_model/densenet201.pth'
 # pre_vgg16 = '/home/aistudio/work/pre_model/vgg16.pth'
-train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_train/'  # 去雾训练集的路径
-val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/mini_val/'  # 去雾验证集的路径
+train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
+val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
 gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
 
 save_path = './result_nyu_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
