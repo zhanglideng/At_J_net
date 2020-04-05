@@ -19,9 +19,13 @@ def ssim_loss(output, gth, channel=3):
 def vgg_loss(output, gth):
     vgg = Vgg16().type(torch.cuda.FloatTensor)
     # vgg = Vgg16().cuda()
-    output_features = vgg(output)
-    gth_features = vgg(gth)
-    return l2_loss(output_features, gth_features)
+    output_features_1, output_features_2, output_features_3, output_features_4 = vgg(output)
+    gth_features_1, gth_features_2, gth_features_3, gth_features_4 = vgg(gth)
+    sum_loss = l2_loss(output_features_1, gth_features_1) + \
+               l2_loss(output_features_2, gth_features_2) + \
+               l2_loss(output_features_3, gth_features_3) + \
+               l2_loss(output_features_4, gth_features_4)
+    return sum_loss / 4
 
 
 def color_loss(input_image, output_image):
