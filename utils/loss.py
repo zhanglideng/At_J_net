@@ -44,7 +44,8 @@ def color_loss(input_image, output_image):
 def loss_function(image, weight):
     J, gt_image = image
     loss_train = [l2_loss(J, gt_image),
-                  ssim_loss(J, gt_image)]
+                  ssim_loss(J, gt_image),
+                  vgg_loss(J, gt_image)]
     # vgg_loss(J, gt_image)
     loss_sum = 0
     for i in range(len(loss_train)):

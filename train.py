@@ -31,8 +31,8 @@ alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 4 // BATCH_SIZE  # 训练64次后保存相关数据到excel
-loss_num = 2  # 包括参加训练和不参加训练的loss
-weight = [1, 1]
+loss_num = 3  # 包括参加训练和不参加训练的loss
+weight = [1, 1, 0]
 
 # pre_densenet201 = '/home/aistudio/work/pre_model/densenet201.pth'
 # pre_vgg16 = '/home/aistudio/work/pre_model/vgg16.pth'
@@ -89,6 +89,7 @@ for epoch in range(EPOCH):
         J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
         loss_image = [J, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
+        print(temp_loss)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
         loss = loss / accumulation_steps
@@ -101,8 +102,8 @@ for epoch in range(EPOCH):
         if np.mod(index, itr_to_excel) == 0:
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
-            # print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
-            print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
+            print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+            # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             excel_train_line = write_excel(sheet=sheet_train,
                                            data_type='train',
@@ -127,8 +128,8 @@ for epoch in range(EPOCH):
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
     val_loss = sum(loss_excel)
-    # print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
-    print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
+    print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+    # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
     excel_val_line = write_excel(sheet=sheet_val,
                                  data_type='val',
                                  line=excel_val_line,

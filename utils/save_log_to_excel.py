@@ -17,22 +17,18 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
     if data_type == 'train':
         sheet.write(line, 0, epoch + 1)
         sheet.write(line, 1, itr + 1)
-        # for i in range(3):
-        for i in range(2):
+        for i in range(3):
             sheet.write(line, i + 2, round(loss[i], 4))
             sum_loss += loss[i] * weight[i]
-        # sheet.write(line, 5, round(sum_loss, 4))
-        sheet.write(line, 4, round(sum_loss, 4))
+        sheet.write(line, 5, round(sum_loss, 4))
+        # sheet.write(line, 4, round(sum_loss, 4))
     else:
         loss, val, train = loss
         sheet.write(line, 0, epoch + 1)
-        # for i in range(3):
-        for i in range(2):
+        for i in range(3):
             sheet.write(line, i + 1, round(loss[i], 4))
-        # sheet.write(line, 4, round(val, 4))
-        sheet.write(line, 3, round(val, 4))
-        # sheet.write(line, 5, round(train, 4))
-        heet.write(line, 4, round(train, 4))
+        sheet.write(line, 4, round(val, 4))
+        sheet.write(line, 5, round(train, 4))
     return line + 1
 
 
@@ -41,10 +37,10 @@ def init_excel():
     sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
     sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
     # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-    # row0 = ["epoch", "itr", "l2", "ssim", "vgg", "loss"]
-    row0 = ["epoch", "itr", "l2", "ssim", "loss"]
-    # row1 = ["epoch", "l2", "ssim", "vgg", "val_loss", "train_loss"]
-    row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
+    row0 = ["epoch", "itr", "l2", "ssim", "vgg", "loss"]
+    # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
+    row1 = ["epoch", "l2", "ssim", "vgg", "val_loss", "train_loss"]
+    # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
     for i in range(0, len(row0)):
         print('写入train_excel')
         sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
