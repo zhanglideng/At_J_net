@@ -4,6 +4,7 @@ import sys
 
 sys.path.append('/home/aistudio/external-libraries')
 import os
+
 if not os.path.exists('/home/aistudio/.torch/models/vgg16-397923af.pth'):
     os.system('mkdir /home/aistudio/.torch')
     os.system('mkdir /home/aistudio/.torch/models')
@@ -21,17 +22,17 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0001  # 学习率
+LR = 0.0002  # 学习率
 EPOCH = 80  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
-accumulation_steps = 1  # 梯度积累的次数，类似于batch-size=64
+accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 4 // BATCH_SIZE  # 训练64次后保存相关数据到excel
-loss_num = 3  # 包括参加训练和不参加训练的loss
-weight = [1, 1, 1]
+loss_num = 2  # 包括参加训练和不参加训练的loss
+weight = [1, 1]
 
 # pre_densenet201 = '/home/aistudio/work/pre_model/densenet201.pth'
 # pre_vgg16 = '/home/aistudio/work/pre_model/vgg16.pth'
@@ -100,7 +101,8 @@ for epoch in range(EPOCH):
         if np.mod(index, itr_to_excel) == 0:
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
-            print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+            # print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+            print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             excel_train_line = write_excel(sheet=sheet_train,
                                            data_type='train',
@@ -123,9 +125,10 @@ for epoch in range(EPOCH):
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
-    val_loss = sum(loss_excel)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
-    print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+    val_loss = sum(loss_excel)
+    # print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+    print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
     excel_val_line = write_excel(sheet=sheet_val,
                                  data_type='val',
                                  line=excel_val_line,
