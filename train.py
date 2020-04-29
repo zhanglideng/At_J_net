@@ -2,13 +2,13 @@
 # git clone https://github.com/zhanglideng/At_J_net.git
 import sys
 
-sys.path.append('/home/aistudio/external-libraries')
+# sys.path.append('/home/aistudio/external-libraries')
 import os
 
-if not os.path.exists('/home/aistudio/.torch/models/vgg16-397923af.pth'):
-    os.system('mkdir /home/aistudio/.torch')
-    os.system('mkdir /home/aistudio/.torch/models')
-    os.system('cp /home/aistudio/work/pre_model/*  /home/aistudio/.torch/models/')
+# if not os.path.exists('/home/aistudio/.torch/models/vgg16-397923af.pth'):
+#    os.system('mkdir /home/aistudio/.torch')
+#    os.system('mkdir /home/aistudio/.torch/models')
+#    os.system('cp /home/aistudio/work/pre_model/*  /home/aistudio/.torch/models/')
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -22,23 +22,25 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0002  # 学习率
+LR = 0.00009  # 学习率
 EPOCH = 80  # 轮次
-BATCH_SIZE = 1  # 批大小
+BATCH_SIZE = 2  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
-itr_to_excel = 4 // BATCH_SIZE  # 训练64次后保存相关数据到excel
+itr_to_excel = 16 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 3  # 包括参加训练和不参加训练的loss
-weight = [1, 1, 0]
+weight = [0, 0, 1]
 
-# pre_densenet201 = '/home/aistudio/work/pre_model/densenet201.pth'
-# pre_vgg16 = '/home/aistudio/work/pre_model/vgg16.pth'
-train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
-val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
-gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
+# train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
+# val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
+# gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
+
+train_haze_path = '/input/data/nyu/train/'  # 去雾训练集的路径
+val_haze_path = '/input/data/nyu/val/'  # 去雾验证集的路径
+gt_path = '/input/data/nyu/gth/'
 
 save_path = './result_nyu_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'J_model.pt'  # 保存模型的路径
@@ -59,12 +61,12 @@ transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_haze_path, gt_path]
 train_data = AtDataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
 # 读取验证集数据
 val_path_list = [val_haze_path, gt_path]
 val_data = AtDataSet(transform, val_path_list)
-val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
@@ -86,12 +88,12 @@ for epoch in range(EPOCH):
     for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
-        J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+        # J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+        J = net(haze_image)
         loss_image = [J, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
-        print(temp_loss)
         train_loss += loss.item()
-        loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
+        loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
         loss = loss / accumulation_steps
         loss.backward()
         # 3. update parameters of net
@@ -121,10 +123,10 @@ for epoch in range(EPOCH):
     with torch.no_grad():
         net.eval()
         for haze_image, gt_image in val_data_loader:
-            J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+            J= net(haze_image)
             loss_image = [J, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
-            loss_excel = [loss_excel[i] + temp_loss[i].item() for i in range(len(loss_excel))]
+            loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
     val_loss = sum(loss_excel)

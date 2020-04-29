@@ -17,7 +17,7 @@ def ssim_loss(output, gth, channel=3):
 
 
 def vgg_loss(output, gth):
-    vgg = Vgg16().type(torch.cuda.FloatTensor)
+    vgg = Vgg16().type(torch.cuda.FloatTensor).cuda()
     # vgg = Vgg16().cuda()
     output_features_1, output_features_2, output_features_3, output_features_4 = vgg(output)
     gth_features_1, gth_features_2, gth_features_3, gth_features_4 = vgg(gth)
@@ -50,4 +50,8 @@ def loss_function(image, weight):
     loss_sum = 0
     for i in range(len(loss_train)):
         loss_sum = loss_sum + loss_train[i] * weight[i]
+        loss_train[i] = loss_train[i].item()
+        # print("i=%d" % i)
+        # print(loss_train[i])
+        # print(loss_train[i] * weight[i])
     return loss_sum, loss_train
