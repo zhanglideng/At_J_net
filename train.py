@@ -61,7 +61,7 @@ transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_haze_path, gt_path]
 train_data = AtDataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
 # 读取验证集数据
 val_path_list = [val_haze_path, gt_path]
@@ -88,6 +88,8 @@ for epoch in range(EPOCH):
     for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
+        haze_image = haze_image.cuda()
+        gt_image = gt_image.cuda()
         # J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
         J = net(haze_image)
         loss_image = [J, gt_image]
@@ -123,7 +125,9 @@ for epoch in range(EPOCH):
     with torch.no_grad():
         net.eval()
         for haze_image, gt_image in val_data_loader:
-            J= net(haze_image)
+            haze_image = haze_image.cuda()
+            gt_image = gt_image.cuda()
+            J = net(haze_image)
             loss_image = [J, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]

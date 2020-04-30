@@ -18,17 +18,17 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
         sheet.write(line, 0, epoch + 1)
         sheet.write(line, 1, itr + 1)
         for i in range(3):
-            sheet.write(line, i + 2, round(loss[i], 4))
+            sheet.write(line, i + 2, round(loss[i], 6))
             sum_loss += loss[i] * weight[i]
-        sheet.write(line, 5, round(sum_loss, 4))
-        # sheet.write(line, 4, round(sum_loss, 4))
+        sheet.write(line, 5, round(sum_loss, 6))
+        # sheet.write(line, 4, round(sum_loss, 6))
     else:
         loss, val, train = loss
         sheet.write(line, 0, epoch + 1)
         for i in range(3):
-            sheet.write(line, i + 1, round(loss[i], 4))
-        sheet.write(line, 4, round(val, 4))
-        sheet.write(line, 5, round(train, 4))
+            sheet.write(line, i + 1, round(loss[i], 6))
+        sheet.write(line, 4, round(val, 6))
+        sheet.write(line, 5, round(train, 6))
     return line + 1
 
 

@@ -7,13 +7,13 @@ from utils.vgg import Vgg16
 
 def l2_loss(output, gth):
     l2_loss_fn = torch.nn.MSELoss(reduction='mean').cuda()
-    return l2_loss_fn(output, gth) * 100
+    return l2_loss_fn(output, gth)
 
 
 def ssim_loss(output, gth, channel=3):
     losser = MS_SSIM(max_val=1, channel=channel).cuda()
     # losser = MS_SSIM(data_range=1.).cuda()
-    return (1 - losser(output, gth)) * 100
+    return 1 - losser(output, gth)
 
 
 def vgg_loss(output, gth):
@@ -22,8 +22,11 @@ def vgg_loss(output, gth):
     # vgg = Vgg16().cuda()
     output_features = vgg(output)
     gth_features = vgg(gth)
-    sum_loss = loss_mse(output_features[1], gth_features[1])
-    return sum_loss * 100
+    sum_loss = loss_mse(output_features[0], gth_features[0]) \
+               + loss_mse(output_features[1], gth_features[1]) \
+               + loss_mse(output_features[2], gth_features[2]) \
+               + loss_mse(output_features[3], gth_features[3])
+    return sum_loss
 
 
 def color_loss(input_image, output_image):
