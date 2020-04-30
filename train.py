@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.00009  # 学习率
+LR = 0.00008  # 学习率
 EPOCH = 80  # 轮次
 BATCH_SIZE = 2  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -61,7 +61,7 @@ transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_haze_path, gt_path]
 train_data = AtDataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
 val_path_list = [val_haze_path, gt_path]
