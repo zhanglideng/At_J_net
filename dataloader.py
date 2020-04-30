@@ -42,8 +42,8 @@ class AtDataSet(Dataset):
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)
-        # haze_image = haze_image.cuda()
-        # gt_image = gt_image.cuda()
+        haze_image = haze_image.cuda()
+        gt_image = gt_image.cuda()
         return haze_image, gt_image
 
 # if __name__ == '__main__':

@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.00008  # 学习率
+LR = 0.00005  # 学习率
 EPOCH = 80  # 轮次
 BATCH_SIZE = 2  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -61,12 +61,12 @@ transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_haze_path, gt_path]
 train_data = AtDataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
 val_path_list = [val_haze_path, gt_path]
 val_data = AtDataSet(transform, val_path_list)
-val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
@@ -88,8 +88,6 @@ for epoch in range(EPOCH):
     for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
-        haze_image = haze_image.cuda()
-        gt_image = gt_image.cuda()
         # J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
         J = net(haze_image)
         loss_image = [J, gt_image]
@@ -125,8 +123,6 @@ for epoch in range(EPOCH):
     with torch.no_grad():
         net.eval()
         for haze_image, gt_image in val_data_loader:
-            haze_image = haze_image.cuda()
-            gt_image = gt_image.cuda()
             J = net(haze_image)
             loss_image = [J, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
