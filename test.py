@@ -47,7 +47,7 @@ save_path = 'test_result_{}'.format(time.strftime("%Y_%m_%d_%H_%M_%S", time.loca
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-model_path = './checkpoints/model.pt'
+model_path = './J_model/J_model.pt'
 net = torch.load(model_path)
 net = net.cuda()
 transform = transforms.Compose([transforms.ToTensor()])

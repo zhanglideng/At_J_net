@@ -144,5 +144,6 @@ for epoch in range(EPOCH):
         min_loss = val_loss
         min_epoch = epoch
         torch.save(net, save_model_name)
+        torch.save(net, mid_save_ed_path)
         print('saving the epoch %d model with %.5f' % (epoch + 1, min_loss))
 print('Train is Done!')
