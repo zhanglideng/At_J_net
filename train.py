@@ -48,7 +48,7 @@ excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './J_model/J_model.pt'  # 保存的中间模型，用于下一步训练。
 
 # 初始化excel
-f, sheet_train, sheet_val = init_excel()
+f, sheet_train, sheet_val = init_excel(kind='train')
 
 net = AtJ().cuda()
 # print(net)
