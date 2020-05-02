@@ -31,7 +31,6 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
         sheet.write(line, 5, round(train, 6))
     elif data_type == 'test':
         sheet.write(line, 0, epoch)
-        loss, val, train = loss
         for i in range(3):
             sheet.write(line, i + 1, round(loss[i], 6))
             sum_loss += loss[i] * weight[i]
