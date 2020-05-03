@@ -10,8 +10,9 @@ import torch
 
 # nyu/test/1318_a=0.55_b=1.21.png
 class AtDataSet(Dataset):
-    def __init__(self, transform1, path=None):
+    def __init__(self, transform1, path=None, flag='train'):
         # print(path)
+        self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
         self.haze_data_list = os.listdir(self.haze_path)
@@ -44,6 +45,9 @@ class AtDataSet(Dataset):
             gt_image = self.transform1(gt_image)
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        return haze_image, gt_image
+        if flag == 'train':
+            return haze_image, gt_image
+        elif flag == 'test':
+            return haze_image_name, haze_image, gt_image
 
-# if __name__ == '__main__':
+        # if __name__ == '__main__':

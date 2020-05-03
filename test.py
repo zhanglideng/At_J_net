@@ -61,13 +61,11 @@ test_data_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False, n
 count = 0
 print(">>Start testing...\n")
 f, sheet_test = init_excel(kind='test')
-for haze_image, gt_image in test_data_loader:
+for haze_name, haze_image, gt_image in test_data_loader:
     count += 1
     print('Processing %d...' % count)
     net.eval()
     with torch.no_grad():
-        haze_image = haze_image.cuda()
-        gt_image = gt_image.cuda()
         J = net(haze_image)
 
         # for i in range(BATCH_SIZE):
@@ -75,8 +73,8 @@ for haze_image, gt_image in test_data_loader:
         loss_image = [J, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
         excel_test_line = write_excel(sheet=sheet_test,
-                                      epoch=count,
-                                      itr=False,
+                                      epoch=False,
+                                      itr=haze_name,
                                       data_type='test',
                                       line=excel_test_line,
                                       loss=temp_loss,
