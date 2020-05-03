@@ -32,7 +32,7 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 16 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 3  # 包括参加训练和不参加训练的loss
-weight = [0, 0, 1]
+weight = [1, 1, 1]
 
 # train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
 # val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
