@@ -45,9 +45,9 @@ class AtDataSet(Dataset):
             gt_image = self.transform1(gt_image)
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        if flag == 'train':
+        if self.flag == 'train':
             return haze_image, gt_image
-        elif flag == 'test':
+        elif self.flag == 'test':
             return haze_image_name, haze_image, gt_image
 
         # if __name__ == '__main__':

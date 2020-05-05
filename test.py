@@ -55,7 +55,7 @@ net = net.cuda()
 transform = transforms.Compose([transforms.ToTensor()])
 
 test_path_list = [test_path, gth_path]
-test_data = AtDataSet(transform, test_path_list)
+test_data = AtDataSet(transform, test_path_list, flag='test')
 test_data_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
 count = 0
@@ -74,14 +74,14 @@ for haze_name, haze_image, gt_image in test_data_loader:
         loss, temp_loss = loss_function(loss_image, weight)
         excel_test_line = write_excel(sheet=sheet_test,
                                       epoch=False,
-                                      itr=haze_name,
+                                      itr=haze_name[0],
                                       data_type='test',
                                       line=excel_test_line,
                                       loss=temp_loss,
                                       weight=weight)
         f.save(excel_save)
         im_output_for_save = get_image_for_save(J)
-        filename = str(count - 1) + '.bmp'
+        filename = haze_name[0][:-18] + '.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
 
 print("Finished!")

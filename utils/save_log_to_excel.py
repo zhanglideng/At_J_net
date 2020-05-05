@@ -64,7 +64,7 @@ def init_excel(kind):
     elif kind == 'test':
         sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-        row0 = ["num", "beta", "A", "l2", "ssim", "vgg", "sum_loss"]
+        row0 = ["num", "A", "beta", "l2", "ssim", "vgg", "sum_loss"]
         for i in range(0, len(row0)):
             print('写入test_excel')
             sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
