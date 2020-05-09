@@ -81,7 +81,7 @@ for haze_name, haze_image, gt_image in test_data_loader:
                                       weight=weight)
         f.save(excel_save)
         im_output_for_save = get_image_for_save(J)
-        filename = haze_name[0][:-18] + '.bmp'
+        filename = haze_name[0][:-4] + '.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
 
 print("Finished!")
