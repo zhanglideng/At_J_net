@@ -17,18 +17,18 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
     if data_type == 'train':
         sheet.write(line, 0, epoch + 1)
         sheet.write(line, 1, itr + 1)
-        for i in range(3):
+        for i in range(len(loss)):
             sheet.write(line, i + 2, round(loss[i], 6))
             sum_loss += loss[i] * weight[i]
-        sheet.write(line, 5, round(sum_loss, 6))
+        sheet.write(line, 2 + len(loss), round(sum_loss, 6))
         # sheet.write(line, 4, round(sum_loss, 6))
     elif data_type == 'val':
         loss, val, train = loss
         sheet.write(line, 0, epoch + 1)
-        for i in range(3):
+        for i in range(len(loss)):
             sheet.write(line, i + 1, round(loss[i], 6))
-        sheet.write(line, 4, round(val, 6))
-        sheet.write(line, 5, round(train, 6))
+        sheet.write(line, 1 + len(loss), round(val, 6))
+        sheet.write(line, 2 + len(loss), round(train, 6))
     elif data_type == 'test':
         # 0_a=0.86_b=1.01.png
         num = int(itr[:-18])
@@ -37,10 +37,10 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
         sheet.write(line, 0, num)
         sheet.write(line, 1, beta)
         sheet.write(line, 2, air_light)
-        for i in range(3):
+        for i in range(len(loss)):
             sheet.write(line, i + 3, round(loss[i], 6))
             sum_loss += loss[i] * weight[i]
-        sheet.write(line, 6, round(sum_loss, 6))
+        sheet.write(line, 3 + len(loss), round(sum_loss, 6))
     return line + 1
 
 

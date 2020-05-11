@@ -32,7 +32,7 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 16 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 3  # 包括参加训练和不参加训练的loss
-weight = [1, 1, 1]
+weight = [1, 1, 1, 1, 1, 1]
 
 # train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
 # val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
@@ -41,6 +41,7 @@ weight = [1, 1, 1]
 train_haze_path = '/input/data/nyu/train/'  # 去雾训练集的路径
 val_haze_path = '/input/data/nyu/val/'  # 去雾验证集的路径
 gt_path = '/input/data/nyu/gth/'
+depth_path = '/input/data/nyu/depth'
 
 save_path = './result_nyu_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'J_model.pt'  # 保存模型的路径
@@ -59,12 +60,12 @@ if not os.path.exists(save_path):
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
-train_path_list = [train_haze_path, gt_path]
+train_path_list = [train_haze_path, gt_path, depth_path]
 train_data = AtDataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
-val_path_list = [val_haze_path, gt_path]
+val_path_list = [val_haze_path, gt_path, depth_path]
 val_data = AtDataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
@@ -85,12 +86,12 @@ for epoch in range(EPOCH):
     loss = 0
     loss_excel = [0] * loss_num
     net.train()
-    for haze_image, gt_image in train_data_loader:
+    for haze_image, gt_image, A_gth, t_gth in train_data_loader:
         index += 1
         itr += 1
         # J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
-        J = net(haze_image)
-        loss_image = [J, gt_image]
+        J, A, t = net(haze_image)
+        loss_image = [J, A, t, gt_image, A_gth, t_gth]
         loss, temp_loss = loss_function(loss_image, weight)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
@@ -104,7 +105,9 @@ for epoch in range(EPOCH):
         if np.mod(index, itr_to_excel) == 0:
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
-            print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+            print('dehazy_L2=%.5f\n' 'dehazy_SSIM=%.5f\n' 'dehazy_VGG=%.5f\n'
+                  'A_L2=%.5f\n' 't_L2=%.5f\n' 't_ssim=%.5f\n'
+                  % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))
             # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             excel_train_line = write_excel(sheet=sheet_train,
@@ -122,15 +125,18 @@ for epoch in range(EPOCH):
     loss_excel = [0] * loss_num
     with torch.no_grad():
         net.eval()
-        for haze_image, gt_image in val_data_loader:
-            J = net(haze_image)
-            loss_image = [J, gt_image]
+        for haze_image, gt_image, A_gth, t_gth in val_data_loader:
+            J, A, t = net(haze_image)
+            loss_image = [J, A, t, gt_image, A_gth, t_gth]
             loss, temp_loss = loss_function(loss_image, weight)
+
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
     val_loss = sum(loss_excel)
-    print('L2=%.5f\n' 'SSIM=%.5f\n' 'VGG=%.5f\n' % (loss_excel[0], loss_excel[1], loss_excel[2]))
+    print('dehazy_L2=%.5f\n' 'dehazy_SSIM=%.5f\n' 'dehazy_VGG=%.5f\n'
+          'A_L2=%.5f\n' 't_L2=%.5f\n' 't_ssim=%.5f\n'
+          % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))
     # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
     excel_val_line = write_excel(sheet=sheet_val,
                                  data_type='val',

@@ -22,10 +22,10 @@ def vgg_loss(output, gth):
     # vgg = Vgg16().cuda()
     output_features = vgg(output)
     gth_features = vgg(gth)
-    sum_loss = loss_mse(output_features[0], gth_features[0]) \
-               + loss_mse(output_features[1], gth_features[1]) \
-               + loss_mse(output_features[2], gth_features[2]) \
-               + loss_mse(output_features[3], gth_features[3])
+    sum_loss = loss_mse(output_features[0], gth_features[0]) * 0.25 \
+               + loss_mse(output_features[1], gth_features[1]) * 0.25 \
+               + loss_mse(output_features[2], gth_features[2]) * 0.25 \
+               + loss_mse(output_features[3], gth_features[3]) * 0.25
     return sum_loss
 
 
@@ -43,10 +43,14 @@ def color_loss(input_image, output_image):
 
 
 def loss_function(image, weight):
-    J, gt_image = image
+    # J, A, t, gt_image, A_gth, t_gth
+    J, A, t, gt_image, A_gth, t_gth = image
     loss_train = [l2_loss(J, gt_image),
                   ssim_loss(J, gt_image),
-                  vgg_loss(J, gt_image)]
+                  vgg_loss(J, gt_image),
+                  l2_loss(A, A_gth),
+                  l2_loss(t, t_gth),
+                  ssim_loss(t, t_gth)]
     # vgg_loss(J, gt_image)
     loss_sum = 0
     for i in range(len(loss_train)):

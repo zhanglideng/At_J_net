@@ -281,21 +281,23 @@ class AtJ(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x, activation='sig'):
-        # x1, x2, x4 = self.encoder_1(x)
-        # A = self.decoder_A(x, x1, x2, x4)
-        # t = self.decoder_t(x, x1, x2, x4, activation='sig')
+        x1, x2, x4 = self.encoder_1(x)
+        A = self.decoder_A(x, x1, x2, x4)
+        t = self.decoder_t(x, x1, x2, x4, activation='sig')
 
-        x1, x2, x4 = self.encoder_2(x)
-        J = self.decoder_J(x, x1, x2, x4)
+        # x1, x2, x4 = self.encoder_2(x)
+        # J = self.decoder_J(x, x1, x2, x4)
 
-        # t1 = torch.abs((t)) + (10 ** -10)
-        # t1 = t1.repeat(1, 3, 1, 1)
+        t1 = torch.abs((t)) + (10 ** -10)
+        t1 = t1.repeat(1, 3, 1, 1)
 
         # haze_reconstruct = J * t + A * (1 - t)
-        # J_reconstruct = (x - A * (1 - t1)) / t1
+        J_reconstruct = (x - A * (1 - t1)) / t1
 
         # return J, A, t, J_reconstruct, haze_reconstruct
-        return J
+        # return J
+        return J_reconstruct, A, t
+
 
 '''
 /home/aistudio/external-libraries/torch/nn/functional.py:2481: 

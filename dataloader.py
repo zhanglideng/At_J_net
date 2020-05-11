@@ -14,12 +14,14 @@ class AtDataSet(Dataset):
         # print(path)
         self.flag = flag
         self.transform1 = transform1
-        self.haze_path, self.gt_path = path
+        self.haze_path, self.gt_path, self.depth_path = path
         self.haze_data_list = os.listdir(self.haze_path)
         self.gt_data_list = os.listdir(self.gt_path)
+        self.depth_data_list = os.listdir(self.depth_path)
 
         self.haze_data_list.sort(key=lambda x: int(x[:-18]))
         self.gt_data_list.sort(key=lambda x: int(x[:-4]))
+        self.depth_data_list.sort(key=lambda x: int(x[:-4]))
 
         self.length = len(os.listdir(self.haze_path))
 
@@ -27,17 +29,17 @@ class AtDataSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        """
-            需要传递的信息有：
-            有雾图像
-            无雾图像
-            (深度图)
-            (雾度)
-            (大气光)
-            624, 464
-        """
-
         haze_image_name = self.haze_data_list[idx]
+
+        A_gth = np.ones((608, 448, 3), dtype=np.float32)
+        d_image = np.load(self.d_path + haze_image_name[:-18] + '.npy')
+        b = float(haze_image_name[-8:-4])
+        A = float(haze_image_name[-15:-11])
+        d_image = np.expand_dims(d_image, axis=2)
+        d_image = d_image.astype(np.float32)
+        t_gth = np.exp(-1 * b * d_image)
+        A_gth = A_gth * A
+
         haze_image = cv2.imread(self.haze_path + haze_image_name)
         gt_image = cv2.imread(self.gt_path + haze_image_name[:-18] + '.PNG')
         if self.transform1:
@@ -46,7 +48,7 @@ class AtDataSet(Dataset):
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
         if self.flag == 'train':
-            return haze_image, gt_image
+            return haze_image, gt_image, t_gth, A_gth
         elif self.flag == 'test':
             return haze_image_name, haze_image, gt_image
 
