@@ -50,9 +50,9 @@ def init_excel(kind):
         sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
         sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-        row0 = ["epoch", "itr", "l2", "ssim", "vgg", "loss"]
+        row0 = ["epoch", "itr", "dehazy_l2", "dehazy_ssim", "dehazy_vgg", "A_L2", "t_L2", "t_ssim", "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
-        row1 = ["epoch", "l2", "ssim", "vgg", "val_loss", "train_loss"]
+        row1 = ["epoch", "dehazy_l2", "dehazy_ssim", "dehazy_vgg", "A_L2", "t_L2", "t_ssim", "val_loss", "train_loss"]
         # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
         for i in range(0, len(row0)):
             print('写入train_excel')

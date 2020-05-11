@@ -262,11 +262,11 @@ class Encoder(nn.Module):
 class AtJ(nn.Module):
     def __init__(self):
         super(AtJ, self).__init__()
-        # self.encoder_1 = Encoder()
-        self.encoder_2 = Encoder()
-        # self.decoder_A = Dense_decoder(out_channel=3)
-        # self.decoder_t = Dense_decoder(out_channel=1)
-        self.decoder_J = Dense_decoder(out_channel=3)
+        self.encoder_1 = Encoder()
+        # self.encoder_2 = Encoder()
+        self.decoder_A = Dense_decoder(out_channel=3)
+        self.decoder_t = Dense_decoder(out_channel=1)
+        # self.decoder_J = Dense_decoder(out_channel=3)
 
         self.refine1 = nn.Conv2d(3, 20, kernel_size=3, stride=1, padding=1)
         self.refine2 = nn.Conv2d(20, 20, kernel_size=3, stride=1, padding=1)

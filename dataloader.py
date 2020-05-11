@@ -32,7 +32,7 @@ class AtDataSet(Dataset):
         haze_image_name = self.haze_data_list[idx]
 
         A_gth = np.ones((608, 448, 3), dtype=np.float32)
-        d_image = np.load(self.d_path + haze_image_name[:-18] + '.npy')
+        d_image = np.load(self.depth_path + haze_image_name[:-18] + '.npy')
         b = float(haze_image_name[-8:-4])
         A = float(haze_image_name[-15:-11])
         d_image = np.expand_dims(d_image, axis=2)
@@ -45,10 +45,18 @@ class AtDataSet(Dataset):
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)
+            A_gth = self.transform1(A_gth)
+            t_gth = self.transform1(t_gth)
+        # print(haze_image[0][0][0])
+        # print(gt_image[0][0][0])
+        # print(A_gth[0][0][0])
+        # print(t_gth[0][0][0])
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
+        A_gth = A_gth.cuda()
+        t_gth = t_gth.cuda()
         if self.flag == 'train':
-            return haze_image, gt_image, t_gth, A_gth
+            return haze_image, gt_image, A_gth, t_gth
         elif self.flag == 'test':
             return haze_image_name, haze_image, gt_image
 

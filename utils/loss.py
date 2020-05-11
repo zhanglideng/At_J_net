@@ -45,12 +45,13 @@ def color_loss(input_image, output_image):
 def loss_function(image, weight):
     # J, A, t, gt_image, A_gth, t_gth
     J, A, t, gt_image, A_gth, t_gth = image
+    # print(A.size(), A_gth.size())
     loss_train = [l2_loss(J, gt_image),
                   ssim_loss(J, gt_image),
                   vgg_loss(J, gt_image),
                   l2_loss(A, A_gth),
                   l2_loss(t, t_gth),
-                  ssim_loss(t, t_gth)]
+                  ssim_loss(t, t_gth, channel=1)]
     # vgg_loss(J, gt_image)
     loss_sum = 0
     for i in range(len(loss_train)):
