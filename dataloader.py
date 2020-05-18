@@ -58,6 +58,6 @@ class AtDataSet(Dataset):
         if self.flag == 'train':
             return haze_image, gt_image, A_gth, t_gth
         elif self.flag == 'test':
-            return haze_image_name, haze_image, gt_image
+            return haze_image_name, haze_image, gt_image, A_gth, t_gth
 
         # if __name__ == '__main__':

@@ -32,7 +32,7 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 16 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 6  # 包括参加训练和不参加训练的loss
-weight = [1, 1, 1, 1, 1, 1]
+weight = [1, 1, 1, 0, 0, 0]
 
 # train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
 # val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
@@ -133,7 +133,7 @@ for epoch in range(EPOCH):
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
-    val_loss = sum(loss_excel)
+    val_loss = [loss_excel[i] * weight[i] for i in range(len(loss_excel))]
     print('dehazy_L2=%.5f\n' 'dehazy_SSIM=%.5f\n' 'dehazy_VGG=%.5f\n'
           'A_L2=%.5f\n' 't_L2=%.5f\n' 't_ssim=%.5f\n'
           % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))

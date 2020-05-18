@@ -26,9 +26,10 @@ from utils.save_log_to_excel import *
 # test_visual_path = '/input/data/nyu/test_visual/'
 test_path = '/input/data/nyu/test/'
 gth_path = '/input/data/nyu/gth/'
+depth_path = '/input/data/nyu/depth/'
 
 BATCH_SIZE = 1
-weight = [1, 1, 1]
+weight = [1, 1, 1, 0, 0, 0]
 excel_test_line = 1
 
 
@@ -54,23 +55,24 @@ net = torch.load(model_path)
 net = net.cuda()
 transform = transforms.Compose([transforms.ToTensor()])
 
-test_path_list = [test_path, gth_path]
+test_path_list = [test_path, gth_path, depth_path]
 test_data = AtDataSet(transform, test_path_list, flag='test')
 test_data_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
 count = 0
 print(">>Start testing...\n")
 f, sheet_test = init_excel(kind='test')
-for haze_name, haze_image, gt_image in test_data_loader:
+for haze_name, haze_image, gt_image, A_gth, t_gth in test_data_loader:
     count += 1
     print('Processing %d...' % count)
     net.eval()
     with torch.no_grad():
-        J = net(haze_image)
-
+        # J = net(haze_image)
+        J, A, t = net(haze_image)
+        loss_image = [J, A, t, gt_image, A_gth, t_gth]
         # for i in range(BATCH_SIZE):
         #    print(i)
-        loss_image = [J, gt_image]
+        # loss_image = [J, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
         excel_test_line = write_excel(sheet=sheet_test,
                                       epoch=False,
@@ -81,7 +83,7 @@ for haze_name, haze_image, gt_image in test_data_loader:
                                       weight=weight)
         f.save(excel_save)
         im_output_for_save = get_image_for_save(J)
-        filename = haze_name[0][:-18] + '.bmp'
+        filename = haze_name[0][:-4] + '.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
 
 print("Finished!")
