@@ -11,7 +11,7 @@ from dataloader import AtDataSet
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import cv2
-from At_model import *
+from AtJ_model import *
 import torch
 from utils.loss import *
 from utils.save_log_to_excel import *

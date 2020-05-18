@@ -266,7 +266,7 @@ class AtJ(nn.Module):
         # self.encoder_2 = Encoder()
         self.decoder_A = Dense_decoder(out_channel=3)
         self.decoder_t = Dense_decoder(out_channel=1)
-        # self.decoder_J = Dense_decoder(out_channel=3)
+        self.decoder_J = Dense_decoder(out_channel=3)
 
         self.refine1 = nn.Conv2d(3, 20, kernel_size=3, stride=1, padding=1)
         self.refine2 = nn.Conv2d(20, 20, kernel_size=3, stride=1, padding=1)
@@ -286,17 +286,17 @@ class AtJ(nn.Module):
         t = self.decoder_t(x, x1, x2, x4, activation='sig')
 
         # x1, x2, x4 = self.encoder_2(x)
-        # J = self.decoder_J(x, x1, x2, x4)
+        J = self.decoder_J(x, x1, x2, x4)
 
         t1 = torch.abs((t)) + (10 ** -10)
         t1 = t1.repeat(1, 3, 1, 1)
 
-        # haze_reconstruct = J * t + A * (1 - t)
+        haze_reconstruct = J * t + A * (1 - t)
         J_reconstruct = (x - A * (1 - t1)) / t1
 
-        # return J, A, t, J_reconstruct, haze_reconstruct
+        return J, A, t, J_reconstruct, haze_reconstruct
         # return J
-        return J_reconstruct, A, t
+        # return J_reconstruct, A, t
 
 
 '''
