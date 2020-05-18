@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.00005  # 学习率
+LR = 0.0004  # 学习率
 EPOCH = 80  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -30,7 +30,7 @@ excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
-itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
+itr_to_excel = 8 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 12  # 包括参加训练和不参加训练的loss
 weight = [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -106,7 +106,7 @@ for epoch in range(EPOCH):
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
             print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
-                  'J_re_L2=%.5f\n' 'J_re_L2=%.5f\n' 'J_re_ssim=%.5f\n'
+                  'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
                   % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
             # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
@@ -135,7 +135,7 @@ for epoch in range(EPOCH):
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
     val_loss = [loss_excel[i] * weight[i] for i in range(len(loss_excel))]
     print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
-          'J_re_L2=%.5f\n' 'J_re_L2=%.5f\n' 'J_re_ssim=%.5f\n'
+          'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
           % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
     # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
     excel_val_line = write_excel(sheet=sheet_val,

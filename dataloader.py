@@ -45,6 +45,7 @@ class AtJDataSet(Dataset):
             A_gth = self.transform1(A_gth)
             t_gth = self.transform1(t_gth)
 
+        print(t_gth[0][0][0])
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
         A_gth = A_gth.cuda()
