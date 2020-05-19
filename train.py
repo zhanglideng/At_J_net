@@ -23,7 +23,7 @@ import xlwt
 from utils.ms_ssim import *
 
 LR = 0.0004  # 学习率
-EPOCH = 80  # 轮次
+EPOCH = 40  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
@@ -51,8 +51,10 @@ mid_save_ed_path = './AtJ_model/AtJ_model.pt'  # 保存的中间模型，用于�
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
 
-net = AtJ().cuda()
-# print(net)
+if os.path.exists('./AtJ_model/AtJ_model.pt'):
+    net = torch.load('./AtJ_model/AtJ_model.pt')
+else:
+    net = AtJ().cuda()
 
 if not os.path.exists(save_path):
     os.makedirs(save_path)
@@ -71,7 +73,7 @@ val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=35, gamma=0.7)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.7)
 
 min_loss = 999999999
 min_epoch = 0
@@ -123,6 +125,7 @@ for epoch in range(EPOCH):
     optimizer.zero_grad()
     scheduler.step()
     loss_excel = [0] * loss_num
+    val_loss = 0
     with torch.no_grad():
         net.eval()
         for haze_image, gt_image, A_gth, t_gth in val_data_loader:
@@ -133,7 +136,8 @@ for epoch in range(EPOCH):
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
-    val_loss = [loss_excel[i] * weight[i] for i in range(len(loss_excel))]
+    for i in range(len(loss_excel)):
+        val_loss = val_loss + loss_excel[i] * weight[i]
     print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
           'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
           % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
