@@ -37,11 +37,11 @@ weight = [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 # train_haze_path = '/home/aistudio/work/data/cut_ntire_2018/train/'  # 去雾训练集的路径
 # val_haze_path = '/home/aistudio/work/data/cut_ntire_2018/val/'  # 去雾验证集的路径
 # gt_path = '/home/aistudio/work/data/cut_ntire_2018/gth/'
-
-train_haze_path = '/input/data/nyu/train/'  # 去雾训练集的路径
-val_haze_path = '/input/data/nyu/val/'  # 去雾验证集的路径
-gt_path = '/input/data/nyu/gth/'
-t_path = '/input/data/nyu/transmission/'
+data_path = '/input/data/'
+train_haze_path = data_path + 'nyu/train/'  # 去雾训练集的路径
+val_haze_path = data_path + 'nyu/val/'  # 去雾验证集的路径
+gt_path = data_path + 'nyu/gth/'
+t_path = data_path + 'nyu/transmission/'
 
 save_path = './AtJ_result_nyu_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'AtJ_model.pt'  # 保存模型的路径
