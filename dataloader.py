@@ -28,15 +28,17 @@ class AtJDataSet(Dataset):
         self.A_dict = {}
         # 读入数据
         A_gth = np.ones((608, 448, 3), dtype=np.float32)
+        print('starting read image data...')
         for i in range(len(self.haze_data_list)):
-            name = self.haze_data_list[i][:-18]
-            A = float(name[-15:-11])
+            name = self.haze_data_list[i][:-4]
+            A = float(name[-11:-7])
             self.haze_image_dict[name] = cv2.imread(self.haze_path + name + '.PNG')
             t_gth = np.load(self.t_path + name + '.npy')
             t_gth = np.expand_dims(t_gth, axis=2)
             t_gth = t_gth.astype(np.float32)
             self.t_dict[name] = t_gth
             self.A_dict[name] = A_gth * A
+        print('starting read GroundTruth data...')
         for i in range(len(self.gt_data_list)):
             name = self.gt_data_list[i][:-4]
             self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.PNG')
