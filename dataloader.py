@@ -31,8 +31,10 @@ class AtJDataSet(Dataset):
         print('starting read image data...')
         for i in range(len(self.haze_data_list)):
             name = self.haze_data_list[i][:-4]
+            # print(self.haze_path + name + '.png')
             A = float(name[-11:-7])
-            self.haze_image_dict[name] = cv2.imread(self.haze_path + name + '.PNG')
+            self.haze_image_dict[name] = cv2.imread(self.haze_path + name + '.png')
+            # print(self.haze_image_dict[name][0][0][0])
             t_gth = np.load(self.t_path + name + '.npy')
             t_gth = np.expand_dims(t_gth, axis=2)
             t_gth = t_gth.astype(np.float32)
@@ -41,17 +43,21 @@ class AtJDataSet(Dataset):
         print('starting read GroundTruth data...')
         for i in range(len(self.gt_data_list)):
             name = self.gt_data_list[i][:-4]
-            self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.PNG')
+            self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
-        name = self.haze_data_list[idx]
+        name = self.haze_data_list[idx][:-4]
         haze_image = self.haze_image_dict[name]
-        gt_image = self.gth_image_dict[name]
-        A_gth = self.t_dict[name]
-        t_gth = self.A_dict[name]
+        gt_image = self.gth_image_dict[name[:-14]]
+        t_gth = self.t_dict[name]
+        A_gth = self.A_dict[name]
+        # print(haze_image[0][0][0])
+        # print(gt_image[0][0][0])
+        # print(A_gth[0][0])
+        # print(t_gth[0][0])
 
         if self.transform1:
             haze_image = self.transform1(haze_image)
@@ -64,8 +70,8 @@ class AtJDataSet(Dataset):
         A_gth = A_gth.cuda()
         t_gth = t_gth.cuda()
         if self.flag == 'train':
-            return haze_image, gt_image, A_gth, t_gth
+            return name, haze_image, gt_image, A_gth, t_gth
         elif self.flag == 'test':
-            return haze_image_name, haze_image, gt_image, A_gth, t_gth
+            return name, haze_image, gt_image, A_gth, t_gth
 
         # if __name__ == '__main__':

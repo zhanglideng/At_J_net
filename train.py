@@ -88,7 +88,7 @@ for epoch in range(EPOCH):
     loss = 0
     loss_excel = [0] * loss_num
     net.train()
-    for haze_image, gt_image, A_gth, t_gth in train_data_loader:
+    for name, haze_image, gt_image, A_gth, t_gth in train_data_loader:
         index += 1
         itr += 1
         J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)

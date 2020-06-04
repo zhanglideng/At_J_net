@@ -30,13 +30,13 @@ def write_excel(sheet, data_type, line, epoch, itr, loss, weight):
         sheet.write(line, 1 + len(loss), round(val, 6))
         sheet.write(line, 2 + len(loss), round(train, 6))
     elif data_type == 'test':
-        # 0_a=0.86_b=1.01.png
-        num = int(itr[:-18])
-        beta = float(itr[-15:-11])
-        air_light = float(itr[-8:-4])
+        # 0_a=0.86_b=1.01
+        num = int(itr[:-14])
+        air_light = float(itr[-11:-7])
+        beta = float(itr[-4:])
         sheet.write(line, 0, num)
-        sheet.write(line, 1, beta)
-        sheet.write(line, 2, air_light)
+        sheet.write(line, 1, air_light)
+        sheet.write(line, 2, beta)
         for i in range(len(loss)):
             sheet.write(line, i + 3, round(loss[i], 6))
             sum_loss += loss[i] * weight[i]
